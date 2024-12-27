@@ -16,9 +16,11 @@ FROM python:3.13-slim
 
 ARG APP_WORKDIR=/iptv-api
 ARG LITE=False
+ARG APP_PORT=8000
 
 ENV APP_WORKDIR=$APP_WORKDIR
 ENV LITE=$LITE
+ENV APP_PORT=$APP_PORT
 ENV PATH="/.venv/bin:$PATH"
 
 WORKDIR $APP_WORKDIR
@@ -38,7 +40,7 @@ RUN echo "deb https://mirrors.aliyun.com/debian/ bookworm main contrib non-free 
   deb-src https://mirrors.aliyun.com/debian-security/ bookworm-security main contrib non-free non-free-firmware\n" \
   > /etc/apt/sources.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends cron
+RUN apt-get update && apt-get install -y --no-install-recommends cron ffmpeg
 
 RUN if [ "$LITE" = False ]; then apt-get install -y --no-install-recommends chromium chromium-driver; fi \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -47,7 +49,7 @@ RUN (crontab -l ; \
   echo "0 22 * * * cd $APP_WORKDIR && /.venv/bin/python main.py"; \
   echo "0 10 * * * cd $APP_WORKDIR && /.venv/bin/python main.py") | crontab -
 
-EXPOSE 8000
+EXPOSE $APP_PORT
 
 COPY entrypoint.sh /iptv-api-entrypoint.sh
 
